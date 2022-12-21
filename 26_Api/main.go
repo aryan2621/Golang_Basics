@@ -5,6 +5,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -118,12 +119,11 @@ func updateOneCourse(w http.ResponseWriter, r *http.Request) {
 
 			var course Course
 			_ = json.NewDecoder(r.Body).Decode(&course)
-			// this line will decode the json data from the request body and store 
+			// this line will decode the json data from the request body and store
 			// it in the course variable
 
 			course.CourseId = params["id"]
 			courses = append(courses, course)
-
 
 			json.NewEncoder(w).Encode(course)
 			return
@@ -153,5 +153,37 @@ func deleteOneCourse(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	fmt.Println("Welcome to my API")
+	router := mux.NewRouter()
 
+	courses = append(courses, Course{
+		CourseId:    "1",
+		CourseName:  "Go",
+		CoursePrice: 100,
+		Author: &Author{
+			FullName: "John Doe",
+			Website:  "johndoe.com",
+		},
+	})
+	courses = append(courses, Course{
+		CourseId:    "2",
+		CourseName:  "Python",
+		CoursePrice: 200,
+		Author: &Author{
+			FullName: "Jane Doe",
+			Website:  "janedoe.com",
+		},
+	})
+
+	// handle the routes
+	router.HandleFunc("/", serveHome).Methods("GET")
+	router.HandleFunc("/courses", getAllCourses).Methods("GET")
+	router.HandleFunc("/course/{id}", getOneCourse).Methods("GET")
+	router.HandleFunc("/course", createOneCourse).Methods("POST")
+	router.HandleFunc("/course/{id}", updateOneCourse).Methods("PUT")
+	router.HandleFunc("/course/{id}", deleteOneCourse).Methods("DELETE")
+
+
+	// listen to the routes
+	log.Fatal(http.ListenAndServe(":8000", router))
 }
